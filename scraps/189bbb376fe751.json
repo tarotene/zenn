@@ -1,0 +1,206 @@
+{
+  "title": "Rustlings: move_semantics 編 ",
+  "closed": true,
+  "archived": false,
+  "created_at": "2022-03-26",
+  "comments": [
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "# Debugging `move_semantics1.rs`\n\n早速コンパイルエラーのメッセージを解読:\n\n```\n⚠️  Compiling of exercises/move_semantics/move_semantics1.rs failed! Please try again. Here's the output:\nerror[E0596]: cannot borrow `vec1` as mutable, as it is not declared as mutable\n  --> exercises/move_semantics/move_semantics1.rs:13:5\n   |\n9  |     let vec1 = fill_vec(vec0);\n   |         ---- help: consider changing this to be mutable: `mut vec1`\n...\n13 |     vec1.push(88);\n   |     ^^^^ cannot borrow as mutable\n\nerror: aborting due to previous error\n\nFor more information about this error, try `rustc --explain E0596`.\n```\n\n`help: consider changing this to be mutable: mut vec1` は単なる Warning で，片や `cannot borrow as mutable` は Error．お互いに連関しているのは明らか．\n\n恐らく `vec1` を mutable にするだけで解決しそう．",
+      "body_updated_at": "2022-03-26"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "でも，その前に move_semantics という言葉が耳慣れないので，調べてみる．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "さっと流し読みした:\n\nhttps://cpplover.blogspot.com/2009/11/rvalue-reference_23.html\n\n所有権という概念は C++ にもあって，実質的にはオブジェクトがポインタを横取りすることをもって所有権が移動したと表現するらしい．",
+      "body_updated_at": "2022-03-26"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "(im)mutability と {l/r}value の間には何か関係がありそう．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "https://qiita.com/yumetodo/items/8eae5714a6cfe1c0407d"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "よく分からないけど所有権を一部手放すこと == mutable にすること，という理解で良いのかな．\n\n困ったら修正すれば済みそうだし，一旦はこの理解で．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "```\n🎉 🎉  The code is compiling! 🎉 🎉\n\nOutput:\n====================\nvec1 has length 3 content `[22, 44, 66]`\nvec1 has length 4 content `[22, 44, 66, 88]`\n\n====================\n\nYou can keep working on this exercise,\nor jump into the next one by removing the `I AM NOT DONE` comment:\n\n 2 |  // Make me compile! Execute `rustlings hint move_semantics1` for hints :)\n 3 |\n 4 |  // I AM NOT DONE\n 5 |\n 6 |  fn main() {\n```\n\n通った，しかしどうにも気持ち悪い．\n\nガッツリ書籍で復習するのはまた今度にして，一旦は help を眺める．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "答えそのものが書いてあった:\n\n```bash\nrustlings hint move_semantics1\n# => So you've got the \"cannot borrow immutable local variable `vec1` as mutable\" error on line 13,\n# => right? The fix for this is going to be adding one keyword, and the addition is NOT on line 13\n# => where the error is.\n```"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "まあいいや，次行こう．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "# Debugging `move_semantics2.rs`\n\n```\n⚠️  Compiling of exercises/move_semantics/move_semantics2.rs failed! Please try again. Here's the output:\nerror[E0382]: borrow of moved value: `vec0`\n  --> exercises/move_semantics/move_semantics2.rs:13:57\n   |\n8  |     let vec0 = Vec::new();\n   |         ---- move occurs because `vec0` has type `Vec<i32>`, which does not implement the `Copy` trait\n9  |\n10 |     let mut vec1 = fill_vec(vec0);\n   |                             ---- value moved here\n...\n13 |     println!(\"{} has length {} content `{:?}`\", \"vec0\", vec0.len(), vec0);\n   |                                                         ^^^^ value borrowed here after move\n\nerror: aborting due to previous error\n\nFor more information about this error, try `rustc --explain E0382`.\n```"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "素直に読み解けば copy trait が実装されていないので move が起こっている，で推測は\n\n1. move によって所有権が放棄された\n2. 所有権が放棄されたものを borrow することはできないのでエラー\n"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "trait とか borrowing の概念がまだ良く理解できてないけどここまでの情報から組み上げたストーリー．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "実直には，copy trait の実装でこれをガードすれば万事解決？\n\nそれにしても，Rust のコンパイラは文脈的なことを読み取り（推測し）過ぎな気がする．よく気が付くなというか，他の可能性を除外できているのか．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "いや，組み込み型の `Vec<i32>` に新しいメソッドの実装は非現実的か．というか，トレイトって C++ でいうところの特殊メンバ関数のことか．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "左辺値参照っぽいものに束縛してあげるか．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "ダメだった:\n\n```\n⚠️  Compiling of exercises/move_semantics/move_semantics2.rs failed! Please try again. Here's the output:\nerror[E0382]: use of moved value: `vec0`\n  --> exercises/move_semantics/move_semantics2.rs:12:29\n   |\n8  |     let vec0 = Vec::new();\n   |         ---- move occurs because `vec0` has type `Vec<i32>`, which does not implement the `Copy` trait\n9  |\n10 |     let vec0_5 = vec0;\n   |                  ---- value moved here\n11 |\n12 |     let mut vec1 = fill_vec(vec0);\n   |                             ^^^^ value used here after move\n\nerror: aborting due to previous error\n\nFor more information about this error, try `rustc --explain E0382`.\n```"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "問題を先延ばしにしただけ．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "処理の順序を交換したらうまくいった．\n\n```\n🎉 🎉  The code is compiling! 🎉 🎉\n\nOutput:\n====================\nvec0 has length 0 content `[]`\nvec1 has length 4 content `[22, 44, 66, 88]`\n\n====================\n\nYou can keep working on this exercise,\nor jump into the next one by removing the `I AM NOT DONE` comment:\n\n 3 |  // Execute `rustlings hint move_semantics2` for hints :)\n 4 |\n 5 |  // I AM NOT DONE\n 6 |\n 7 |  fn main() {\n```"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "これってアレだね，C とか C++ でも何となく変数のライフタイムを意識して行単位で凝集度の高いコードを書くという習慣があるけど，それを言語として強制する機能だね．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "普段から無意識にやっていることをきちんと名前つけてやらされるやつ．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "# Debugging: `move_semantics3.rs`\n\n関数引数に `mut` キーワードを付加すると内部で弄ってアレコレできる参照渡しになるというやつか，よく分からんけどコンパイル通ったので次．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "# Debugging: `move_semantics4.rs`\n\n```\n⚠️  Compiling of exercises/move_semantics/move_semantics4.rs failed! Please try again. Here's the output:\nerror[E0423]: expected value, found macro `vec`\n  --> exercises/move_semantics/move_semantics4.rs:23:19\n   |\n23 |     let mut vec = vec;\n   |                   ^^^ not a value\n   |\nhelp: use `!` to invoke the macro\n   |\n23 |     let mut vec = vec!;\n   |                      ^\n\nerror[E0061]: this function takes 0 arguments but 1 argument was supplied\n  --> exercises/move_semantics/move_semantics4.rs:12:20\n   |\n12 |     let mut vec1 = fill_vec(vec0);\n   |                    ^^^^^^^^ ---- supplied 1 argument\n   |                    |\n   |                    expected 0 arguments\n   |\nnote: function defined here\n  --> exercises/move_semantics/move_semantics4.rs:22:4\n   |\n22 | fn fill_vec() -> Vec<i32> {\n   |    ^^^^^^^^\n\nerror: aborting due to 2 previous errors\n\nSome errors have detailed explanations: E0061, E0423.\nFor more information about an error, try `rustc --explain E0061`.\n```\n\nちょっと意味不明だけど頑張る．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "該当箇所の `README.md` にはやはり所有権（ownership）と参照（reference）・借用（borrowing）を学べって書いてる．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "- ownership はメモリ管理の仕組み\n- garbage collection や明示的な確保・開放とは異なる"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html\n\nこれをひたすら読む．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "- ownership は（当然？）stack や heap と関連"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "ヒープの説明分かりやすい:\n\n> Think of being seated at a restaurant. When you enter, you state the number of people in your group, and the staff finds an empty table that fits everyone and leads you there. If someone in your group comes late, they can ask where you’ve been seated to find you.",
+      "body_updated_at": "2022-03-26"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "読んだ，とりあえず本来の exercise に戻る．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "コメント文にある指示に従えばなんてことはなかった:\n\n```\n\n🎉 🎉  The code is compiling! 🎉 🎉\n\nOutput:\n====================\nvec1 has length 3 content `[22, 44, 66]`\nvec1 has length 4 content `[22, 44, 66, 88]`\n\n====================\n\nYou can keep working on this exercise,\nor jump into the next one by removing the `I AM NOT DONE` comment:\n\n 5 |  // Execute `rustlings hint move_semantics4` for hints!\n 6 |\n 7 |  // I AM NOT DONE\n 8 |\n 9 |  fn main() {\n```"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "今の所は解答前にヒントを見ずに済んでいる．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "# Debugging `move_semantics5.rs`\n\n指示分にある通り適当に行を reorder したら通ってしまった，意味が不明なのでとりあえずヒントを見る．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-26",
+      "body_markdown": "https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html\n\nを読む．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "読んだ．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "しかし，修正後のコードを見ても同時に `2` つの mutable ref. が生きているように見える:\n\n```rust\nfn main() {\n    let mut x = 100;\n    let y = &mut x;\n    *y += 100;\n    let z = &mut x;\n    *z += 1000;\n    assert_eq!(x, 1200);\n}\n```\n"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "これか！\n\n> The scopes of the immutable references r1 and r2 end after the println! where they are last used, which is before the mutable reference r3 is created. These scopes don’t overlap, so this code is allowed. The ability of the compiler to tell that a reference is no longer being used at a point before the end of the scope is called Non-Lexical Lifetimes (NLL for short), and you can read more about it in The Edition Guide."
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": " これね\n\nhttps://blog.rust-lang.org/2018/12/06/Rust-1.31-and-rust-2018.html#non-lexical-lifetimes"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "素晴らしい言語仕様だ．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "完全に理解したので次に行きます．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "# 次回予告\n\n```\n⚠️  Compiling of exercises/primitive_types/primitive_types1.rs failed! Please try again. Here's the output:\nerror: expected identifier, found keyword `if`\n  --> exercises/primitive_types/primitive_types1.rs:16:5\n   |\n16 |     if is_evening {\n   |     ^^ expected identifier, found keyword\n\nerror: expected one of `:`, `;`, `=`, `@`, or `|`, found `is_evening`\n  --> exercises/primitive_types/primitive_types1.rs:16:8\n   |\n16 |     if is_evening {\n   |        ^^^^^^^^^^ expected one of `:`, `;`, `=`, `@`, or `|`\n\nerror: aborting due to 2 previous errors\n```\n\nprimitive_types 編に突入します．\n"
+    }
+  ]
+}

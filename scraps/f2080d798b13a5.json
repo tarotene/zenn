@@ -1,0 +1,43 @@
+{
+  "title": "Rustlings: primitive_types 編",
+  "closed": false,
+  "archived": false,
+  "created_at": "2022-03-27",
+  "comments": [
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "何故この exercises がこのタイミングに配置されていたのかはちょっと謎．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "variables の直後でも良かったんだけど，羽休め的な感じなのかな．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "全部 straightforward だったので書くことがなさ過ぎる，，，"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "とりあえず\n\n- 対応するソースコードを全文読んでレギュレーションとかチェック\n- 気になることがあったら rustdocs を読み返す\n\nで対応した．\n"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "印象深かったのは slice 型．\n\nGo で学んだときは slice は単なる String もしくは Array の変種にしか見えなかったけど，rustdocs を読むと slice はメモリベースのコレクションを部分参照するベストプラクティスだってことが分かった．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "後は tuple を destructure することをパターンマッチって呼んだり，変数 i を宣言するまえに &i で宣言（うまく言えない）しても良いという，ほんのり JavaScript の香りがする記法があること，くらいかな．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-27",
+      "body_markdown": "内容スカスカなので Open のままにしておこう..."
+    }
+  ]
+}

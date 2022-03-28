@@ -1,0 +1,74 @@
+{
+  "title": "Rustlings: if 編",
+  "closed": true,
+  "archived": false,
+  "created_at": "2022-03-25",
+  "comments": [
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "何となくハンズオン形式の学習コンテンツは記事ではなくスクラップの方が良さげなので，if 編から試験的にスクラップを運用してみる．",
+      "body_updated_at": "2022-03-25"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "# Debugging `if1.rs`\n\n```\n⚠️  Compiling of exercises/if/if1.rs failed! Please try again. Here's the output:\nerror[E0308]: mismatched types\n --> exercises/if/if1.rs:5:34\n  |\n5 | pub fn bigger(a: i32, b: i32) -> i32 {\n  |        ------                    ^^^ expected `i32`, found `()`\n  |        |\n  |        implicitly returns `()` as its body has no tail or `return` expression\n\nerror: aborting due to previous error\n\nFor more information about this error, try `rustc --explain E0308`.\n```"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "急に趣向が変わった:\n\n```rust:./exercises/if/if1.rs より抜粋\npub fn bigger(a: i32, b: i32) -> i32 {\n    // Complete this function to return the bigger number!\n    // Do not use:\n    // - another function call\n    // - additional variables\n    // Execute `rustlings hint if1` for hints\n}\n```\n\n穴埋め問題か．単に完成されてないからビルドエラーが出るケース．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "外部関数の呼び出しと新しい変数宣言は禁止，がレギュレーションか．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "何も考えずに\n\n```rust\npub fn bigger(a: i32, b: i32) -> i32 {\n    if (a > b) {\n        return a;\n    } else {\n        return b;\n    }\n}\n```\n\nでいったら通った．ちなみに Rust には三項演算子（ternary operator）はないそう．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "# Debugging `if2.rs`\n\n```\n⚠️  Compiling of exercises/if/if2.rs failed! Please try again. Here's the output:\nerror[E0308]: mismatched types\n  --> exercises/if/if2.rs:13:9\n   |\n13 |         1\n   |         ^ expected `&str`, found integer\n\nerror: aborting due to previous error\n\nFor more information about this error, try `rustc --explain E0308`.\n```"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "とりあえずコードを読む．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "単に if else の条件分岐で異なる型を出し分けているだけ，なので &str に揃える．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "```\n⚠️  Testing of exercises/if/if2.rs failed! Please try again. Here's the output:\n\nrunning 3 tests\ntest tests::foo_for_fizz ... ok\ntest tests::bar_for_fuzz ... FAILED\ntest tests::default_to_baz ... FAILED\n\nsuccesses:\n\nsuccesses:\n    tests::foo_for_fizz\n\nfailures:\n\n---- tests::bar_for_fuzz stdout ----\nthread 'tests::bar_for_fuzz' panicked at 'assertion failed: `(left == right)`\n  left: `\"1\"`,\n right: `\"bar\"`', exercises/if/if2.rs:29:9\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- tests::default_to_baz stdout ----\nthread 'tests::default_to_baz' panicked at 'assertion failed: `(left == right)`\n  left: `\"1\"`,\n right: `\"baz\"`', exercises/if/if2.rs:34:9\n\n\nfailures:\n    tests::bar_for_fuzz\n    tests::default_to_baz\n\ntest result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n```\n\n初めてテスト結果らしきものを見た気がする．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "`bar_for_fuzz` および `default_to_baz` のアサーションでコケてそうなので丁寧に眺める．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "テストコードは\n\n```rust\n#[test]\nfn bar_for_fuzz() {\n    assert_eq!(fizz_if_foo(\"fuzz\"), \"bar\")\n}\n\n#[test]\nfn default_to_baz() {\n    assert_eq!(fizz_if_foo(\"literally anything\"), \"baz\")\n}\n```\n\nなので，これに合わせて実装を変更．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "いけた，特に Rust らしき要素はゼロ．"
+    },
+    {
+      "author": "tarotene",
+      "created_at": "2022-03-25",
+      "body_markdown": "# 次回予告: quit 編に突入\n\n```\n⚠️  Compiling of exercises/quiz1.rs failed! Please try again. Here's the output:\nerror[E0425]: cannot find function `calculate_apple_price` in this scope\n  --> exercises/quiz1.rs:18:18\n   |\n18 |     let price1 = calculate_apple_price(35);\n   |                  ^^^^^^^^^^^^^^^^^^^^^ not found in this scope\n\nerror[E0425]: cannot find function `calculate_apple_price` in this scope\n  --> exercises/quiz1.rs:19:18\n   |\n19 |     let price2 = calculate_apple_price(40);\n   |                  ^^^^^^^^^^^^^^^^^^^^^ not found in this scope\n\nerror[E0425]: cannot find function `calculate_apple_price` in this scope\n  --> exercises/quiz1.rs:20:18\n   |\n20 |     let price3 = calculate_apple_price(65);\n   |                  ^^^^^^^^^^^^^^^^^^^^^ not found in this scope\n\nerror: aborting due to 3 previous errors\n\nFor more information about this error, try `rustc --explain E0425`.\n```\n\n何かめっちゃ出てるけど見掛け倒しっぽいな．"
+    }
+  ]
+}
