@@ -1,3 +1,11 @@
-# Zenn CLI
+# Zenn-dev Mirroring Repository
 
-* [📘 How to use](https://zenn.dev/zenn/articles/zenn-cli-guide)
+## Getting Started
+
+1. Clone this repository.
+2. `npm install` inside the root of the repository.
+3. `npx zenn preview` to preview our articles.
+
+## References
+
+- https://zenn.dev/zenn/articles/install-zenn-cli
